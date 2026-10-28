@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="card">
+
+        <!-- Search Section -->
+        <div class="search">
+            <input
+                type="text"
+                placeholder="Enter city name"
+                spellcheck="false"
+            >
+
+            <button>
+                <img src="search.png" alt="Search">
+            </button>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error" style="display: none;">
+            <p>Invalid city name</p>
+        </div>
+
+        <!-- Weather Information -->
+        <div class="weather">
+
+            <img
+                src="clouds.png"
+                class="weather-icon"
+                alt="Weather"
+            >
+
+            <h1 class="temp">22°C</h1>
+            <h2 class="city">Karachi</h2>
+
+            <div class="details">
+
+                <div class="col">
+                    <img src="humidity.png" alt="Humidity">
+
+                    <div>
+                        <p class="humidity">50%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <img src="wind.png" alt="Wind speed">
+
+                    <div>
+                        <p class="wind">15 m/s</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const apikey = '1e942c92fac94f095e0a98371321d64d';
+
+        const apiUrl =
+            'https://api.openweathermap.org/data/2.5/weather?units=metric&q=';
+
+        const searchBox = document.querySelector('.search input');
+        const searchBtn = document.querySelector('.search button');
+        const weatherIcon = document.querySelector('.weather-icon');
+        const weatherDiv = document.querySelector('.weather');
+        const errorDiv = document.querySelector('.error');
+
+        // Weather conditions aur unki image files
+        const weatherImages = {
+            Clouds: 'clouds.png',
+            Clear: 'sun.png',
+            Rain: 'rain.png',
+            Drizzle: 'drizzle.png',
+            Mist: 'mist1.png',
+            Fog: 'fog.png',
+            Haze: 'haze.png',
+            Snow: 'snow.png'
+        };
+
+        async function checkWeather(city) {
+            try {
+                const response = await fetch(
+                    `${apiUrl}${encodeURIComponent(city)}&appid=${apikey}`
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    weatherDiv.style.display = 'none';
+                    errorDiv.style.display = 'block';
+
+                    errorDiv.querySelector('p').textContent =
+                        response.status === 404
+                            ? 'Invalid city name'
+                            : (data.message || 'Unable to get weather data');
+
+                    return;
+                }
+
+                // Error hide aur weather show
+                errorDiv.style.display = 'none';
+                weatherDiv.style.display = 'block';
+
+                // Temperature
+                document.querySelector('.temp').textContent =
+                    Math.round(data.main.temp) + '°C';
+
+                // City name
+                document.querySelector('.city').textContent = data.name;
+
+                // Humidity
+                document.querySelector('.humidity').textContent =
+                    data.main.humidity + '%';
+
+                // Wind speed
+                document.querySelector('.wind').textContent =
+                    data.wind.speed + ' m/s';
+
+                // Weather condition check
+                const condition = data.weather[0].main;
+
+                console.log('Weather condition:', condition);
+
+                // Condition ke mutabiq image change
+                const imageFile = weatherImages[condition];
+
+                if (imageFile) {
+                    weatherIcon.onerror = function () {
+                        console.error('Image file not found:', imageFile);
+                        this.onerror = null;
+                        this.src = 'clouds.png';
+                    };
+
+                    weatherIcon.src = imageFile;
+                    weatherIcon.alt = condition + ' weather';
+                } else {
+                    weatherIcon.src = 'clouds.png';
+                    weatherIcon.alt = 'Weather';
+                }
+
+                console.log('Weather data:', data);
+
+            } catch (error) {
+                weatherDiv.style.display = 'none';
+                errorDiv.style.display = 'block';
+
+                errorDiv.querySelector('p').textContent =
+                    'Network error. Please try again.';
+
+                console.error('Weather error:', error);
+            }
+        }
+
+        // Search button
+        searchBtn.addEventListener('click', function () {
+            const city = searchBox.value.trim();
+
+            if (city !== '') {
+                checkWeather(city);
+            }
+        });
+
+        // Enter key se search
+        searchBox.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                const city = searchBox.value.trim();
+
+                if (city !== '') {
+                    checkWeather(city);
+                }
+            }
+        });
+
+        // Default city
+        checkWeather('Karachi');
+
+    </script>
+
+</body>
+</html>
+
+
+  
